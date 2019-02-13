@@ -1,0 +1,69 @@
+/*
+ * De Saint Venant 1D.
+ */
+import static oms3.SimBuilder.instance as OMS3
+def home = oms_prj
+
+OMS3.sim {
+
+    resource "$oms_prj/lib"
+    model() {
+        components {
+        		"readerHeadDischarge"	"read.ReadCsvTwoColumns"
+        		"readDownStreamLevel"	"read.ReadCsvTwoColumns"
+        		"readRiverPoints"		"org.jgrasstools.gears.io.shapefile.OmsShapefileFeatureReader"
+        		"readSectionPoints"		"org.jgrasstools.gears.io.shapefile.OmsShapefileFeatureReader"
+        		"readSections"			"org.jgrasstools.gears.io.shapefile.OmsShapefileFeatureReader"
+        	
+       		"saintVenant"			"org.hortonmachine.hmachine.modules.hydrogeomorphology.saintgeo.OmsSaintGeo"
+        		       		
+        }
+        
+        parameter {
+        	// file csv con le portate di monte
+        	"readerHeadDischarge.filePath"            "data/flow/CT_head_constant50.csv"
+			// nel file di input le righe dell'header devono inziare con // 
+			"readerHeadDischarge.headerMark"          	"//"
+			
+			// file csv con le quote dei livelli di valle 
+			"readDownStreamLevel.filePath"            "data/flow/CT_downstream_waterlevel_758.csv"
+			// nel file di input le righe dell'header devono inziare con //
+			"readDownStreamLevel.headerMark"          	"//"  
+       
+       		"readRiverPoints.file"					"data/geometry/CT_riverpoints.shp"
+			
+       		"readSectionPoints.file"				"data/geometry/CT_sectionpoints.shp"
+       		
+			"readSections.file"						"data/geometry/CT_sections.shp"
+
+           	// A monte viene assegnata la portata. non cambiare questo parametro
+			"saintVenant.SCELTA_A_MONTE" "1"
+			// A valle sono possibili tre condizioni
+			// 1  quota del livello nel tempo
+			// 2  passaggio in critica
+			// 3  condizione trasmissiva
+			"saintVenant.SCELTA_A_VALLE" "2"
+			
+			// Passo temporale della condizioni al contorno espresso in secondi
+			"saintVenant.timeStep" "6.0"
+			
+			//Percorso del file di output relativo alle quote dei livelli
+           	"saintVenant.outputLevelFile"				"output/tempLevel1.csv"
+			//Percorso del file di output con le portate, Fr, velocita`, area bagnata della sezione
+           	"saintVenant.outputDischargeFile"          "output/tempDischarge1.csv" 
+
+        }
+        
+        connect { 
+        		
+        		"readerHeadDischarge.outData"	"saintVenant.inDischarge"
+        		"readDownStreamLevel.outData"	"saintVenant.inDownstreamLevel"
+        		"readRiverPoints.geodata"		"saintVenant.inRiverPoints"
+        		"readSections.geodata"			"saintVenant.inSections"
+        		"readSectionPoints.geodata"		"saintVenant.inSectionPoints"
+        		
+        }
+    
+    }
+
+}
